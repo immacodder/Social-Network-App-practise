@@ -1,0 +1,37 @@
+.background {
+	width: 100vw;
+	height: 100vh;
+	background-color: #2a2a2a;
+	text-align: center;
+}
+.container {
+	width: 100vw;
+	height: 90vh;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-direction: column;
+}
+.container .btn {
+	margin-top: 15px;
+}
+.title {
+	margin-bottom: 25px;
+	font-weight: 600;
+}
+.or {
+	display: flex;
+	flex-flow: row nowrap;
+	width: 85vw;
+	font-size: 1.1rem;
+	margin: 22px 0;
+	font-weight: 500;
+}
+.or p {
+	margin: 0 1.3rem;
+}
+.or hr {
+	border-top: 1px solid rgba(255, 255, 255, 0.9);
+	align-self: center;
+	width: 100%;
+}

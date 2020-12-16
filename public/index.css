@@ -1,0 +1,46 @@
+* {
+	margin: 0;
+	padding: 0;
+	border: none;
+	color: rgba(255, 255, 255, 0.9);
+	font-family: 'Open Sans', sans-serif;
+}
+body {
+	background-color: #121212;
+}
+input {
+	width: 85%;
+	height: 45px;
+	border-radius: 5px;
+	background-color: rgba(255, 255, 255, 0.1);
+	margin: 6px 0;
+	font-size: 18px;
+	text-indent: 17px;
+	border: 1px solid transparent;
+}
+input::placeholder {
+	font-family: 'Segoe UI', 'Open Sans', sans-serif;
+	font-size: 1.1rem;
+	text-indent: 17px;
+	color: rgba(255, 255, 255, 0.5);
+}
+input:focus {
+	outline: none;
+	border: 1px solid #bb86fc;
+}
+.btnPrimary {
+	background-color: #bb86fc;
+	font-size: 1.1rem;
+	color: #191919dc;
+	width: 85%;
+	min-height: 45px;
+	border-radius: 5px;
+}
+.btnPrimary:disabled {
+	background-color: rgba(255, 255, 255, 0.12);
+	color: rgba(255, 255, 255, 0.34);
+}
+.btnPrimary:disabled {
+	background-color: rgba(255, 255, 255, 0.12);
+	color: rgba(255, 255, 255, 0.34);
+}

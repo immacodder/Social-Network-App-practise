@@ -1,0 +1,13 @@
+.provider {
+	min-height: 45px;
+	width: 85vw;
+	display: flex;
+	align-items: center;
+	margin-bottom: 12px;
+	background-color: rgba(255, 255, 255, 0.1);
+	border-radius: 5px;
+}
+.provider img {
+	margin: 0 20px;
+	height: 35px;
+}
