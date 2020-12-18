@@ -1,7 +1,12 @@
-import React, { useRef, useState } from 'react'
+import React, { useContext, useRef, useState } from 'react'
 import styles from './styles/PostSignUp.module.css'
 import _ from 'lodash'
+import { UserContext } from '../contexts/UserContext'
+import firebase from '../firebase'
+import imageCompressor from 'browser-image-compression'
 
+const db = firebase.firestore()
+const rootRef = firebase.storage().ref()
 const now = new Date()
 
 const getDaysInMonth = (year: number, month: number) =>
@@ -13,71 +18,133 @@ const getArraysOfDates = (year: number, month: number) => [
 	_.range(1, getDaysInMonth(year, month))
 ]
 
+const defUrl =
+	'https://firebasestorage.googleapis.com/v0/b/social-network-app-dev.appspot.com/o/users%2Fanonymous.svg?alt=media&token=07138c31-d785-4cba-9356-c9ec5d804529'
+
 const PostSignUp: React.FC = () => {
+	//types
+	//type names are short versions of states
+	type fne = '' | 'You need to provide your first name'
+	type sne = '' | 'You need to provide your second name'
+	type ge = '' | 'You need to select gender'
+	type dobe = '' | 'Please provide your date of birth'
+	//states
 	const [year, setYear] = useState(0)
 	const [month, setMonth] = useState(0)
 	const [day, setDay] = useState(0)
 	const [fName, setFName] = useState('')
 	const [sName, setSName] = useState('')
-	const [avatar, setAvatar] = useState('')
+	const [avatar, setAvatar] = useState(defUrl)
 	const [gender, setGender] = useState<'male' | 'female' | ''>('')
+	//errors
+	const [fNameError, setFNameError] = useState<fne>('')
+	const [sNameError, setSNameError] = useState<sne>('')
+	const [genderError, setGenderError] = useState<ge>('')
+	const [dateOfBirthError, setDateOfBirthError] = useState<dobe>('')
+
 	const fileInputRef = useRef<HTMLInputElement>(null)
+	const user = useContext(UserContext)
 
 	const [years, months, days] = getArraysOfDates(year, month)
 	let isDayDisabled = year === 0 || month === 0
 
-	let isSubmitDisabled: boolean
-	if (!month || !day || !year || !fName.trim() || !sName.trim())
-		isSubmitDisabled = true
-	else isSubmitDisabled = false
-
 	//Methods
-	const onFileSelect = () => {
-		const reader = new FileReader()
-		reader.onload = e => {
-			console.log(reader.result)
-			setAvatar(reader.result as string)
+	const getCompressedImage = async () => {
+		if (fileInputRef.current?.files) {
+			const image = await imageCompressor(fileInputRef.current.files[0], {
+				maxSizeMB: 0.1,
+				maxWidthOrHeight: 400
+			})
+			return image
+		} else throw new Error('There is no image, dumb ass')
+	}
+
+	const validate = (): void => {
+		fName
+			? setFNameError('')
+			: setFNameError('You need to provide your first name')
+		sName
+			? setSNameError('')
+			: setSNameError('You need to provide your second name')
+		gender ? setGenderError('') : setGenderError('You need to select gender')
+		!year || !month || !day
+			? setDateOfBirthError('Please provide your date of birth')
+			: setDateOfBirthError('')
+	}
+
+	const onFormSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+		e.preventDefault()
+		if (!fName || !sName || !gender || !year || !month || !day) {
+			validate()
+			return null
 		}
+
+		if (!user) throw new Error('For some reason, there is no user')
+
+		let avatarURL: string = ''
+		const userRef = db.collection('users').doc(user.uid)
+
+		//Check wherer or not user picked a profile picture
+		try {
+			// @ts-ignore
+			const extension = fileInputRef.current.files[0].name.split('.').pop()
+			const compressedImage = await getCompressedImage()
+			const avatarRef = rootRef.child(`users/${user.uid}.${extension}`)
+			await avatarRef.put(compressedImage)
+			avatarURL = await avatarRef.getDownloadURL()
+		} catch {
+			avatarURL = defUrl
+		}
+
+		userRef.set({
+			dateOfBirth: { year, month, day },
+			firstName: fName,
+			secondName: sName,
+			avatar: avatarURL,
+			gender
+		})
+	}
+
+	const onFileSelect = () => {
+		if (!fileInputRef.current?.files?.length) return null
+		const reader = new FileReader()
+		reader.onload = e => setAvatar(reader.result as string)
+
 		fileInputRef.current?.files &&
 			reader.readAsDataURL(fileInputRef.current.files[0])
 	}
 	const onGenderClick = (isMale: boolean) =>
 		isMale ? setGender('male') : setGender('female')
 
-	console.log(gender)
 	return (
-		<div className={styles.background}>
+		<>
+			<div className={styles.background}></div>
 			<div className={styles.container}>
 				<h1 className={styles.title}>
 					Complete
 					<br />
 					Information
 				</h1>
-				<form
-					onSubmit={e => {
-						e.preventDefault()
-						console.log(fName, sName, year, month, day)
-					}}
-				>
+				<form onSubmit={onFormSubmit}>
 					<div className={styles.fields}>
 						<input
 							onChange={e => setFName(e.target.value)}
 							value={fName}
 							placeholder="First name"
 							type="text"
-							required
 						/>
+						{fNameError && <div className={styles.error}>{fNameError}</div>}
 						<input
 							onChange={e => setSName(e.target.value)}
 							value={sName}
 							placeholder="Second name"
 							type="text"
-							required
 						/>
+						{sNameError && <div className={styles.error}>{sNameError}</div>}
 					</div>
 					<div className={styles.gender}>
 						<p>You are:</p>
-						<div>
+						<div className={styles.genderDiv}>
 							<button
 								onClick={() => onGenderClick(true)}
 								className={gender === 'male' ? styles.active : ''}
@@ -93,10 +160,11 @@ const PostSignUp: React.FC = () => {
 								Female
 							</button>
 						</div>
+						{genderError && <div className={styles.error}>{genderError}</div>}
 					</div>
 					<div className={styles.dateOfBirth}>
 						<p>Date of Birth:</p>
-						<div>
+						<div className={styles.div}>
 							<select
 								value={year}
 								onChange={e => setYear(parseInt(e.target.value))}
@@ -140,6 +208,9 @@ const PostSignUp: React.FC = () => {
 								))}
 							</select>
 						</div>
+						{dateOfBirthError && (
+							<div className={styles.error}>{dateOfBirthError}</div>
+						)}
 					</div>
 					<div className={styles.avatarSelect}>
 						<div
@@ -147,8 +218,9 @@ const PostSignUp: React.FC = () => {
 							style={{ backgroundImage: `url(${avatar})` }}
 						/>
 						<label htmlFor="fileInput">
-							<p>Select Avatar</p>
+							<p>Select Profile image</p>
 							<input
+								accept=".png,.jpg"
 								onChange={onFileSelect}
 								ref={fileInputRef}
 								id="fileInput"
@@ -156,18 +228,14 @@ const PostSignUp: React.FC = () => {
 							/>
 						</label>
 					</div>
-					<button
-						disabled={isSubmitDisabled}
-						type="submit"
-						className={`btnPrimary ${styles.btn}`}
-					>
+					<button type="submit" className={`btnPrimary ${styles.btn}`}>
 						Continue
 					</button>
 				</form>
 			</div>
-		</div>
+		</>
 	)
 }
-export {}
 
+export {}
 export default PostSignUp

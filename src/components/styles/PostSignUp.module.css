@@ -1,16 +1,17 @@
 .background {
 	width: 100vw;
 	height: 100vh;
+	position: fixed;
+	top: 0;
+	z-index: -1000;
+	left: 0;
 	background-color: #2a2a2a;
-	text-align: center;
 }
 .container {
+	text-align: center;
+	min-height: 100vh;
 	width: 100vw;
-	height: 90vh;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	flex-direction: column;
+	padding-top: 10px;
 }
 .container .btn {
 	margin-top: 15px;
@@ -23,7 +24,7 @@
 .dateOfBirth {
 	margin-top: 15px;
 }
-.dateOfBirth > div {
+.dateOfBirth > .div {
 	margin: 15px auto 0 auto;
 	display: flex;
 	width: 85%;
@@ -72,11 +73,15 @@
 	font-size: 21px;
 	margin: 12px 0;
 }
-.gender > div {
+.gender > .genderDiv {
 	width: 85%;
 	margin: 0 auto;
 	display: flex;
 	justify-content: space-between;
+}
+.gender .error,
+.dateOfBirth .error {
+	margin-top: 10px;
 }
 .gender button {
 	display: inline-block;
@@ -90,4 +95,10 @@
 }
 .active:focus {
 	outline-style: none;
+}
+.error {
+	color: #cf6679;
+}
+.container button[type='submit'] {
+	margin-bottom: 30px;
 }

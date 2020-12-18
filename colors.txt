@@ -1,0 +1,3 @@
+Primary: #BB86FC
+Secondary: #CF6679
+OnTop: rgba(255,255,255,.1)
