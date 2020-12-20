@@ -5,6 +5,7 @@ import SignIn from './components/SignIn'
 import SignUp from './components/SignUp'
 import { UserProvider } from './contexts/UserContext'
 import PostSignUp from './components/PostSignUp'
+import AddPostForm from './components/AddPostForm'
 
 const App: React.FC = () => {
 	return (
@@ -21,7 +22,7 @@ const App: React.FC = () => {
 						<PostSignUp />
 					</Route>
 					<Route path="/">
-						<Redirect to="/signup" />
+						<AddPostForm />
 					</Route>
 				</Switch>
 			</UserProvider>
