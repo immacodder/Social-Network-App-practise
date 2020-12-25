@@ -4,6 +4,7 @@ import SignInWithProvider from './SignInWithProviderButton'
 import { Link, useHistory } from 'react-router-dom'
 import firebase from '../firebase'
 import { validate } from './sharedFunctions/validate'
+import { Form } from './Form'
 
 let disabled: boolean
 
@@ -50,53 +51,20 @@ const SignUp: React.FC = () => {
 	}
 
 	return (
-		<>
-			<div className={styles.background}></div>
-
-			<form onSubmit={onSignUp} className={styles.container}>
-				<h1 className={styles.title}>Sign Up</h1>
-				<div className={styles.fields}>
-					<input
-						value={email}
-						onChange={e => setEmail(e.target.value)}
-						placeholder="Email"
-						type="email"
-					/>
-					{emailError && <div className={styles.error}>{emailError}</div>}
-					<input
-						value={password}
-						onChange={e => setPassword(e.target.value)}
-						placeholder="Password"
-						type="password"
-					/>
-					{passwordError && <div className={styles.error}>{passwordError}</div>}
-					<input
-						value={passwordRepeat}
-						onChange={e => setPasswordRepeat(e.target.value)}
-						placeholder="Password confirmation"
-						type="password"
-					/>
-					{passwordRepeatError && (
-						<div className={styles.error}>{passwordRepeatError}</div>
-					)}
-				</div>
-				<button
-					disabled={disabled}
-					type="submit"
-					className={`btnPrimary ${styles.btn}`}
-				>
-					Continue
-				</button>
-				<div className={styles.or}>
-					<hr />
-					<p>OR</p>
-					<hr />
-				</div>
-				<SignInWithProvider isSignIn={false} type="google" />
-				<SignInWithProvider isSignIn={false} type="facebook" />
-				<Link to="/signin">Sign In instead</Link>
-			</form>
-		</>
+		<Form
+			isSignUp={true}
+			onSignUp={onSignUp}
+			disabled={disabled}
+			email={email}
+			emailError={emailError}
+			password={password}
+			passwordError={passwordError}
+			passwordRepeat={passwordRepeat}
+			passwordRepeatError={passwordRepeatError}
+			setEmail={setEmail}
+			setPassword={setPassword}
+			setPasswordRepeat={setPasswordRepeat}
+		/>
 	)
 }
 

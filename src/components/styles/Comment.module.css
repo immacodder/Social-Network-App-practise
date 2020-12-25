@@ -1,0 +1,64 @@
+.container {
+	position: relative;
+	display: flex;
+	justify-content: center;
+}
+.content {
+	width: 80vw;
+	padding: 10px 15px;
+	border-radius: 15px;
+	background-color: rgba(255, 255, 255, 0.1);
+}
+.hr {
+	margin-top: 8px;
+	margin-bottom: 5px;
+	border-top: rgba(238, 238, 238, 0.95) solid 0.5px;
+}
+.authorImage {
+	width: 50px;
+	height: 50px;
+	border-radius: 100px;
+	background-size: cover;
+	background-position: center;
+	margin-right: 8px;
+}
+.authorName {
+	margin-bottom: 4px;
+	font-size: 14px;
+	color: rgba(238, 238, 238, 0.89);
+}
+.comment {
+	color: rgba(238, 238, 238, 0.95);
+}
+.iconContainer {
+	display: flex;
+	align-items: center;
+}
+.iconsLeftContainer .iconContainer {
+	margin-right: 8px;
+}
+.iconContainer span {
+	margin-left: 8px;
+}
+.iconContainer img {
+	width: 24px;
+}
+.bottomFlexbox {
+	display: flex;
+	justify-content: space-between;
+}
+.iconsLeftContainer {
+	display: flex;
+}
+.more {
+	position: absolute;
+	height: 25px;
+	right: 15px;
+	top: 10px;
+}
+.contextMenuContainer {
+	position: absolute;
+	right: 25px;
+	top: 25px;
+	z-index: 100;
+}

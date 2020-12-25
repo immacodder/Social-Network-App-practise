@@ -1,0 +1,30 @@
+.container {
+	height: fit-content;
+	width: fit-content;
+	padding: 15px 10px;
+	border-radius: 5px;
+	filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.25));
+}
+.item {
+	width: fit-content;
+	display: flex;
+	margin-bottom: 6px;
+	align-items: center;
+}
+.item img {
+	margin-right: 6px;
+}
+.item p {
+	white-space: nowrap;
+}
+.danger {
+	filter: brightness(0) saturate(100%);
+	filter: invert(47%) sepia(74%) saturate(4075%) hue-rotate(336deg)
+		brightness(90%) contrast(93%);
+}
+.hr {
+	margin-bottom: 6px;
+	width: 100%;
+	height: 1px;
+	border-top: solid 0.5px rgba(255, 255, 255, 0.9);
+}

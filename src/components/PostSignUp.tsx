@@ -4,6 +4,8 @@ import _ from 'lodash'
 import { UserContext } from '../contexts/UserContext'
 import firebase from '../firebase'
 import imageCompressor from 'browser-image-compression'
+import { userType } from '../types'
+import { useHistory } from 'react-router-dom'
 
 const db = firebase.firestore()
 const rootRef = firebase.storage().ref()
@@ -19,7 +21,7 @@ const getArraysOfDates = (year: number, month: number) => [
 ]
 
 const defUrl =
-	'https://firebasestorage.googleapis.com/v0/b/social-network-app-dev.appspot.com/o/users%2Fanonymous.svg?alt=media&token=07138c31-d785-4cba-9356-c9ec5d804529'
+	'https://firebasestorage.googleapis.com/v0/b/social-network-app-dev.appspot.com/o/anonymous.png?alt=media&token=2808348b-be40-466d-b59c-bf5bab4502a8'
 
 const PostSignUp: React.FC = () => {
 	//types
@@ -44,6 +46,7 @@ const PostSignUp: React.FC = () => {
 
 	const fileInputRef = useRef<HTMLInputElement>(null)
 	const user = useContext(UserContext)
+	const history = useHistory()
 
 	const [years, months, days] = getArraysOfDates(year, month)
 	let isDayDisabled = year === 0 || month === 0
@@ -84,7 +87,7 @@ const PostSignUp: React.FC = () => {
 		let avatarURL: string = ''
 		const userRef = db.collection('users').doc(user.uid)
 
-		//Check wherer or not user picked a profile picture
+		//Check whether or not user picked a profile picture
 		try {
 			// @ts-ignore
 			const extension = fileInputRef.current.files[0].name.split('.').pop()
@@ -95,14 +98,16 @@ const PostSignUp: React.FC = () => {
 		} catch {
 			avatarURL = defUrl
 		}
-
-		userRef.set({
+		const userInfo: userType = {
 			dateOfBirth: { year, month, day },
 			firstName: fName,
 			secondName: sName,
 			avatar: avatarURL,
 			gender
-		})
+		}
+
+		userRef.set(userInfo)
+		history.push('/createpost')
 	}
 
 	const onFileSelect = () => {

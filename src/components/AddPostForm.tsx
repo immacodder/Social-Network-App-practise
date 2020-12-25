@@ -7,8 +7,10 @@ import { v4 as uuid } from 'uuid'
 import closeSVG from './icons/close.svg'
 import imageCompression from 'browser-image-compression'
 import firebase from '../firebase'
-import { postType } from '../types'
+import { postType, userType } from '../types'
 import { UserContext } from '../contexts/UserContext'
+import { useHistory } from 'react-router-dom'
+import Navbar from './Navbar'
 
 const db = firebase.firestore()
 const rootRef = firebase.storage().ref()
@@ -26,6 +28,7 @@ const AddPostForm: React.FC = () => {
 	const fileRef = useRef<HTMLInputElement>(null)
 	const [imageURLs, setImageURLs] = useState<imageObj[]>([])
 	const user = useContext(UserContext)
+	const history = useHistory()
 	useEffect(() => setCount(areaText.length), [areaText])
 
 	const onAddImageChange = async () => {
@@ -73,15 +76,20 @@ const AddPostForm: React.FC = () => {
 		let links: string[] = []
 		// returning a promise to make sure that i get all the link pushed to the array
 		const putLinksInArr = new Promise<string>((resolve, reject) =>
-			imageURLs.forEach(async ({ extension, value }, i) => {
-				const ref = rootRef.child(`postImages/${uuid()}.${extension}`)
-				await ref.putString(value, 'data_url')
-				const link = await ref.getDownloadURL()
-				if (!link) reject('')
-				links.push(link)
-				if (i === imageURLs.length - 1) resolve('Successful!')
-			})
+			imageURLs.length
+				? imageURLs.forEach(async ({ extension, value }, i) => {
+						const ref = rootRef.child(`postImages/${uuid()}.${extension}`)
+						await ref.putString(value, 'data_url')
+						const link = await ref.getDownloadURL()
+						if (!link) reject('')
+						links.push(link)
+						if (i === imageURLs.length - 1) resolve('Successful!')
+				  })
+				: resolve('No images')
 		)
+		// Get user's data
+		const userInfo = await db.doc(`users/${user.uid}`).get()
+		const { avatar, firstName, secondName } = userInfo.data() as userType
 		try {
 			await putLinksInArr
 		} catch {
@@ -89,19 +97,22 @@ const AddPostForm: React.FC = () => {
 		}
 		const post: postType = {
 			authorUID: user.uid,
+			authorImage: avatar,
+			firstName,
+			secondName,
 			comments: [],
-			createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+			createdAt: new Date().getTime(),
 			dislikedBy: [],
 			likedBy: [],
 			text: areaText,
 			imagesLinks: links
 		}
 		try {
-			const response = await db.collection(`posts`).add(post)
-			response.get().then(data => console.log(data.id))
+			await db.collection(`posts`).add(post)
 		} catch (e) {
 			throw new Error(e)
 		}
+		history.push('/')
 	}
 
 	const renderImages = () => {
@@ -157,39 +168,44 @@ const AddPostForm: React.FC = () => {
 	}
 
 	return (
-		<form onSubmit={onFormSubmit}>
-			<div className={styles.container}>
-				<TextareaAutosize
-					className={styles.textArea}
-					placeholder="Describe your thoughts"
-					value={areaText}
-					maxLength={5000}
-					onChange={e => setAreaText(e.currentTarget.value)}
-				/>
-				{renderImages()}
-				<hr className={styles.hr} />
-				<div className={styles.bottomOfForm}>
-					<label htmlFor="inp" className={styles.addImage}>
-						<img alt="" src={addImageSVG} />
-						Add Image
-						<input
-							onChange={onAddImageChange}
-							ref={fileRef}
-							multiple
-							hidden
-							accept=".png,.jpg"
-							type="file"
-							id="inp"
-						/>
-					</label>
-					<p>{`${count} / 5000`}</p>
+		<>
+			<form onSubmit={onFormSubmit}>
+				<div className={styles.container}>
+					<TextareaAutosize
+						className={styles.textArea}
+						placeholder="Describe your thoughts"
+						value={areaText}
+						maxLength={5000}
+						onChange={e => setAreaText(e.currentTarget.value)}
+					/>
+					{renderImages()}
+					<hr className={styles.hr} />
+					<div className={styles.bottomOfForm}>
+						<label htmlFor="inp" className={styles.addImage}>
+							<img alt="" src={addImageSVG} />
+							Add Image
+							<input
+								onChange={onAddImageChange}
+								ref={fileRef}
+								multiple
+								hidden
+								accept=".png,.jpg"
+								type="file"
+								id="inp"
+							/>
+						</label>
+						<p>{`${count} / 5000`}</p>
+					</div>
 				</div>
-			</div>
-			<div className={styles.buttons}>
-				<button className="btnPrimary">Add</button>
-				<button className="btnSecondary">Discard</button>
-			</div>
-		</form>
+				<div className={styles.buttons}>
+					<button type="submit" className="btnPrimary">
+						Add
+					</button>
+					<button className="btnSecondary">Discard</button>
+				</div>
+			</form>
+			<Navbar active="addpost" />
+		</>
 	)
 }
 
