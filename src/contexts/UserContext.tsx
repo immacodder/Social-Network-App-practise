@@ -1,27 +1,36 @@
 import React, { createContext, useEffect, useState } from 'react'
+import { useHistory } from 'react-router-dom'
 import firebase from '../firebase'
 import { userType } from '../types'
 
-type user = null | { user: userType; uid: string } | false
+export type userState = { user: userType; uid: string } | null | false
+
 const db = firebase.firestore()
 
-export const UserContext = createContext<user>(false)
+export const UserContext = createContext<userState>(null)
 
 export const UserProvider: React.FC = ({ children }) => {
-	const [user, setUser] = useState<user>(false)
+	const [user, setUser] = useState<userState>(null)
+	const { push } = useHistory()
 	useEffect(() => {
 		const unsub = firebase.auth().onAuthStateChanged(async user => {
 			if (!user) {
 				setUser(false)
 				return null
 			}
-			const res = await db.doc(`users/${user?.uid}`).get()
-			const userData = res.data() as userType
-			setUser({ user: userData, uid: user.uid })
+			try {
+				db.doc(`users/${user?.uid}`).onSnapshot(u => {
+					const userData = u.data() as userType
+					setUser({ user: userData, uid: user.uid })
+				})
+			} catch (e) {
+				console.log('Error', e)
+			}
 		})
 
 		return unsub
 	}, [])
 
+	if (user === false) push('/signin')
 	return <UserContext.Provider value={user}>{children}</UserContext.Provider>
 }

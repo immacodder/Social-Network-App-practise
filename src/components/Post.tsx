@@ -1,17 +1,11 @@
 import React, { useContext, useEffect, useState } from 'react'
-import s from './styles/Post.module.css'
-import commentI from './icons/comment.svg'
-import thumb_upI from './icons/thumb_up.svg'
-import thumb_downI from './icons/thumb_down.svg'
-import thumb_down_outlineI from './icons/thumb_down_outline.svg'
-import thumb_up_outlineI from './icons/thumb_up_outline.svg'
-import shareI from './icons/share.svg'
-import Comment from './Comment'
+import Comment, { onEditClick } from './Comment'
 import firebase from '../firebase'
-import { useHistory } from 'react-router-dom'
 import { UserContext } from '../contexts/UserContext'
-import { commentType, postType, userType } from '../types'
-import { onLikeOrDislike } from './sharedFunctions/userLikedOrDisliked'
+import { commentType, userType } from '../types'
+import { onLikeOrDislike } from '../sharedFunctions/userLikedOrDisliked'
+import { RenderImages } from './RenderImages'
+import { v4 as uuid } from 'uuid'
 
 interface Props {
 	firstName: string
@@ -22,6 +16,7 @@ interface Props {
 	dislikedBy: string[]
 	authorPicture: string
 	postId: string
+	pictures: string[]
 }
 
 interface commentT {
@@ -40,13 +35,13 @@ interface commentT {
 const db = firebase.firestore()
 
 const Post: React.FC<Props> = p => {
-	const [isCommentInputActive, setIsCommentInputActive] = useState(false)
+	const [isAddCommentInputActive, setIsAddCommentInputActive] = useState(false)
+	const [isEditCommentInputActive, setIsEditCommentInputActive] = useState(false)
 	const [commentValue, setCommentValue] = useState('')
 	const [comments, setComments] = useState<commentT[]>([])
-	// null = user didn't like or dislike
 	const [isLikedByUser, setIsLikedByUser] = useState<boolean | null>(null)
-
-	const history = useHistory()
+	const [confirmButtonLabel, setConfirmButtonLabel] = useState('Add comment')
+	const [editCommentUID, setEditCommentUID] = useState('')
 	const user = useContext(UserContext)
 
 	useEffect(() => {
@@ -56,9 +51,7 @@ const Post: React.FC<Props> = p => {
 			.orderBy('createdAt')
 			.onSnapshot(snaphot => {
 				const comments: commentT[] = []
-				snaphot.forEach(doc =>
-					comments.push({ ...(doc.data() as commentType), commentId: doc.id })
-				)
+				snaphot.forEach(doc => comments.push({ ...(doc.data() as commentType), commentId: doc.id }))
 				setComments(comments)
 			})
 		return unsub
@@ -71,17 +64,11 @@ const Post: React.FC<Props> = p => {
 		}
 	}, [user])
 
-	const onAddComment = async (e: React.FormEvent<HTMLFormElement>) => {
-		/* 
-		TODO:
-		make sure that when you create user, you also update the user object with full name (in PostSignUp.tsx)
-		just not to make another useless request to the server here
-		*/
-		e.preventDefault()
+	const onAddComment = async () => {
 		if (!user) return
 
 		setCommentValue('')
-		setIsCommentInputActive(false)
+		setIsAddCommentInputActive(false)
 		const userInfo = await db.doc(`users/${user.uid}`).get()
 		const { firstName, secondName, avatar } = userInfo.data() as userType
 		const comment: commentType = {
@@ -102,86 +89,102 @@ const Post: React.FC<Props> = p => {
 
 	const onLikeOrDislikeClick = (isLike: boolean) => {
 		if (!user) return
-		onLikeOrDislike(
-			'posts',
-			isLike,
-			user.uid,
-			isLikedByUser,
-			p.postId,
-			setIsLikedByUser
-		)
+		onLikeOrDislike('posts', isLike, user.uid, isLikedByUser, p.postId, setIsLikedByUser)
 	}
 	const onReplyClick = (userName: string) => {
-		setIsCommentInputActive(true)
+		setIsEditCommentInputActive(false)
+		setIsAddCommentInputActive(true)
+		setConfirmButtonLabel('Add comment')
 		setCommentValue(`${userName}, `)
 	}
+	const onEditClick: onEditClick = (currentText, uid) => {
+		setIsAddCommentInputActive(false)
+		setIsEditCommentInputActive(true)
+		setConfirmButtonLabel('Edit comment')
+		setCommentValue(currentText)
+		setEditCommentUID(uid)
+	}
+	const onCommentEditSubmit = (commentUID: string) =>
+		db
+			.doc(`comments/${commentUID}`)
+			.update({ text: commentValue })
+			.then(() => setIsEditCommentInputActive(false))
+			.catch(e => console.error(e))
 
 	return (
-		<div className={s.background}>
-			<div className={s.postContainer}>
-				<div className={s.topFlexbox}>
-					<div className={s.user}>
-						<div
-							className={s.userImage}
-							style={{
-								backgroundImage: `url(${p.authorPicture})`,
-								backgroundPosition: 'center',
-								backgroundSize: 'cover'
-							}}
-						/>
-						<p>
+		<div className="max-w-screen-sm sm:mx-auto my-6">
+			<div
+				className="bg-white
+			 p-4 sm:rounded-xl"
+				style={{ boxShadow: '0px 5px 15px -3px rgba(0,0,0,0.2)' }}
+			>
+				<div className="flex justify-between">
+					<div className="flex items-center">
+						<img src={p.authorPicture} className="w-20 h-20 rounded-full object-cover object-center" />
+						<p className="ml-2">
 							{p.firstName}
 							<br />
 							{p.secondName}
 						</p>
 					</div>
-					<p className={s.postTime}>
-						{new Date(p.createdAt).toLocaleDateString()}
-					</p>
+					<p className="mt-4 text-sm">{new Date(p.createdAt).toLocaleDateString()}</p>
 				</div>
-				<article className={s.article}>{p.text}</article>
-				<hr className={s.hr} />
-				<div className={s.bottomFlexbox}>
-					<div className={s.separateContainer}>
-						<div className={s.iconContainer}>
-							<img
-								onClick={() => onLikeOrDislikeClick(true)}
-								src={isLikedByUser ? thumb_upI : thumb_up_outlineI}
-							/>
-							<span className={s.iconText}>{p.likedBy.length}</span>
+				<article className="my-4">{p.text}</article>
+				<hr />
+
+				<RenderImages
+					isViewOnly={true}
+					imageURLs={p.pictures.map(picture => ({
+						value: picture,
+						uid: uuid()
+					}))}
+				/>
+
+				{/* Icons container */}
+				<div className="flex justify-between mt-4">
+					{/* Like/dislike icons */}
+					<div className="flex">
+						<div className="flex mr-2 items-center" onClick={() => onLikeOrDislikeClick(true)}>
+							<i className={`material-icons${isLikedByUser ? '' : '-outlined'}`}>thumb_up</i>
+							<span className="ml-1">{p.likedBy.length}</span>
 						</div>
-						<div
-							onClick={() => onLikeOrDislikeClick(false)}
-							className={s.iconContainer}
-						>
-							<img
-								src={
-									isLikedByUser === false ? thumb_downI : thumb_down_outlineI
-								}
-							/>
-							<span className={s.iconText}>{p.dislikedBy.length}</span>
+
+						<div className="flex items-center" onClick={() => onLikeOrDislikeClick(false)}>
+							<i className={`material-icons${isLikedByUser === false ? '' : '-outlined'}`}>thumb_down</i>
+							<span className="ml-1">{p.dislikedBy.length}</span>
 						</div>
 					</div>
-
-					<div className={s.separateContainer}>
+					{/* Share/Comment icons */}
+					<div className="flex">
 						<div
-							onClick={() => setIsCommentInputActive(true)}
-							className={s.iconContainer}
+							className="flex items-center mr-2 iconContainer"
+							onClick={() => {
+								setIsAddCommentInputActive(true)
+								setConfirmButtonLabel('Add comment')
+							}}
 						>
-							<img src={commentI} />
+							<i className="material-icons text-primary mr-1">comment</i>
 							<span>Comment</span>
 						</div>
-						<img src={shareI} />
+						<i className="material-icons">share</i>
 					</div>
 				</div>
 			</div>
 
-			<div className={s.commentSection}>
+			{/* Comment section */}
+			<div className="">
 				{comments.map(comment => (
 					<div key={comment.createdAt}>
 						<Comment
-							uid={comment.authorUID}
+							authorUID={comment.authorUID}
 							onReplyClick={onReplyClick}
+							onEditClick={onEditClick}
+							onDeleteComment={uid => {
+								if (uid === editCommentUID) {
+									setIsEditCommentInputActive(false)
+									setCommentValue('')
+								}
+							}}
 							commentId={comment.commentId}
 							authorName={comment.fName + ' ' + comment.sName}
 							dislikedBy={comment.dislikedBy}
@@ -191,22 +194,31 @@ const Post: React.FC<Props> = p => {
 						/>
 					</div>
 				))}
-				{isCommentInputActive && (
-					<form onSubmit={onAddComment} className={s.addCommentForm}>
+
+				{(isAddCommentInputActive || isEditCommentInputActive) && (
+					<form
+						className="w-full px-4 "
+						onSubmit={e => {
+							e.preventDefault()
+							isAddCommentInputActive ? onAddComment() : onCommentEditSubmit(editCommentUID)
+						}}
+					>
 						<input
 							autoFocus
 							value={commentValue}
 							onChange={e => setCommentValue(e.target.value)}
 							placeholder="Describe your thoughts"
 						/>
-						<div>
-							<button className={`btnPrimary`} type="submit">
-								Add comment
+						<div className="flex justify-between space-x-4 sm:w-1/2 sm:justify-start">
+							<button className="btnPrimary" type="submit">
+								{confirmButtonLabel}
 							</button>
 							<button
 								type="button"
-								onClick={() => setIsCommentInputActive(false)}
-								className={`btnSecondary`}
+								className="btnSecondary"
+								onClick={() =>
+									isAddCommentInputActive ? setIsAddCommentInputActive(false) : setIsEditCommentInputActive(false)
+								}
 							>
 								Reject
 							</button>

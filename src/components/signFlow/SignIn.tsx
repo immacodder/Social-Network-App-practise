@@ -1,10 +1,11 @@
-import React, { useEffect, useState } from 'react'
+import React, { useContext, useEffect, useState } from 'react'
 import styles from './styles/SignUp.module.css'
 import SignInWithProvider from './SignInWithProviderButton'
 import { Link, useHistory } from 'react-router-dom'
-import { validate } from './sharedFunctions/validate'
-import firebase from '../firebase'
+import { validate } from '../../sharedFunctions/validate'
+import firebase from '../../firebase'
 import { Form } from './Form'
+import { UserContext } from '../../contexts/UserContext'
 
 let disabled: boolean
 
@@ -15,6 +16,7 @@ const SignIn: React.FC = () => {
 	const [passwordError, setPasswordError] = useState('')
 	const [errorMsg, setErrorMsg] = useState('')
 	const history = useHistory()
+	const userObj = useContext(UserContext)
 
 	useEffect(() => {
 		const [emailError, passwordError] = validate({ email, password })
@@ -30,12 +32,10 @@ const SignIn: React.FC = () => {
 		firebase
 			.auth()
 			.signInWithEmailAndPassword(email, password)
-			.then(userCred => {
-				console.log(userCred.user?.displayName)
-				history.push('/')
-			})
+			.then(userCred => history.push('/'))
 			.catch(error => {
 				setErrorMsg('Please, try again!')
+				console.log(error)
 				setTimeout(() => setErrorMsg(''), 1500)
 			})
 	}

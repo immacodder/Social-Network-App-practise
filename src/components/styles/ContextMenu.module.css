@@ -11,17 +11,13 @@
 	margin-bottom: 6px;
 	align-items: center;
 }
-.item img {
+.item i {
 	margin-right: 6px;
 }
 .item p {
 	white-space: nowrap;
 }
-.danger {
-	filter: brightness(0) saturate(100%);
-	filter: invert(47%) sepia(74%) saturate(4075%) hue-rotate(336deg)
-		brightness(90%) contrast(93%);
-}
+
 .hr {
 	margin-bottom: 6px;
 	width: 100%;

@@ -23,6 +23,7 @@ export interface postType {
 	dislikedBy: string[]
 	comments: commentType[]
 	createdAt: number
+	searchTerms: string[]
 }
 
 export interface userType {
@@ -31,4 +32,8 @@ export interface userType {
 	firstName: string
 	secondName: string
 	gender: 'female' | 'male'
+	aboutMe: string | null
+	coverImageUrl: string | null
+	friends: string[]
+	searchTerms: string[]
 }

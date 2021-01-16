@@ -1,0 +1,92 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+	--primary: #bb86fc;
+}
+
+svg.icon-black path {
+	fill: rgba(0, 0, 0, 0.9);
+}
+svg.icon-primary path {
+	fill: #bb86fc;
+}
+svg.icon-white path {
+	fill: #eeeeee;
+}
+
+.commentIcons svg {
+	@apply w-6 h-6;
+}
+
+@layer components {
+	.btnPrimary {
+		@apply bg-primary rounded-md w-full px-4 py-2 shadow;
+	}
+	.btnSecondary {
+		@apply bg-secondary rounded-md w-full px-4 py-2 shadow;
+	}
+	.panel {
+		@apply py-2 mx-auto mt-8 w-52 text-lg text-center bg-white rounded-lg shadow;
+	}
+}
+
+input {
+	@apply block w-full border shadow-md h-12 rounded-md bg-white pl-4 focus:ring focus:outline-none ring-primary my-4;
+}
+.error {
+	@apply text-red-500;
+}
+.profileImage {
+	@apply rounded-full object-cover object-center;
+}
+.material-icons,
+.material-icons-outlined {
+	@apply cursor-pointer select-none;
+}
+.material-icons.default,
+.material-icons-outlined.default {
+	@apply cursor-default;
+}
+
+.iconContainer {
+	@apply cursor-pointer;
+}
+.navbar-menu {
+	transition: transform 250ms ease-in-out;
+	transform: translateY(-100%);
+}
+.open {
+	transform: translateY(0);
+}
+
+.spinner {
+	@apply w-8 h-8 rounded-full;
+	border: rgb(0, 0, 0, 0.1) 5px solid;
+	border-top: rgb(240, 128, 193, 0.9) solid 5px;
+	animation: spinner 1s linear infinite;
+}
+
+@keyframes spinner {
+	0% {
+		transform: rotate(0);
+	}
+	100% {
+		transform: rotate(360deg);
+	}
+}
+.user-cover {
+	@apply h-52 bg-cover bg-center w-full;
+}
+@screen sm {
+	.user-cover {
+		height: 450px;
+	}
+}
+.search-select {
+	@apply py-2 px-4 bg-white rounded-md mr-4 shadow-md border-black border border-opacity-30 focus:ring-2 ring-primary outline-none h-10;
+}
+.user-btn {
+	@apply mt-2 flex justify-center w-auto mx-2;
+}

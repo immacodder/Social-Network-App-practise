@@ -2,8 +2,8 @@ import React, { useEffect, useState } from 'react'
 import styles from './styles/SignUp.module.css'
 import SignInWithProvider from './SignInWithProviderButton'
 import { Link, useHistory } from 'react-router-dom'
-import firebase from '../firebase'
-import { validate } from './sharedFunctions/validate'
+import firebase from '../../firebase'
+import { validate } from '../../sharedFunctions/validate'
 import { Form } from './Form'
 
 let disabled: boolean
@@ -22,23 +22,14 @@ const SignUp: React.FC = () => {
 
 	//validation
 	useEffect(() => {
-		if (password && passwordRepeat && password !== passwordRepeat)
-			setPasswordRepeatError('Passwords must be the same')
+		if (password && passwordRepeat && password !== passwordRepeat) setPasswordRepeatError('Passwords must be the same')
 		else setPasswordRepeatError('')
 		const [emailError, passwordError] = validate({ email, password })
 		setEmailError(emailError)
 		setPasswordError(passwordError)
 	}, [password, passwordRepeat, email])
 
-	if (
-		!password ||
-		!passwordRepeat ||
-		!email ||
-		passwordError ||
-		passwordRepeatError ||
-		emailError
-	)
-		disabled = true
+	if (!password || !passwordRepeat || !email || passwordError || passwordRepeatError || emailError) disabled = true
 	else disabled = false
 
 	//METHODS
